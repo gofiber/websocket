@@ -24,7 +24,7 @@ type Config struct {
 	WriteBufferSize int
 }
 
-func Upgrade(h func(*Conn), config ...Config) func(*fiber.Ctx) {
+func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
 	// Init config
 	var cfg Config
 	if len(config) > 0 {
