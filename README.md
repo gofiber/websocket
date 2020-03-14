@@ -19,7 +19,8 @@ func main() {
     c.Locals("Hello", "World")
     c.Next()
   })
-  app.Get("/ws", websocket.Upgrade(func(c *fiber.Conn) {
+  
+  app.Get("/ws", websocket.New(func(c *fiber.Conn) {
     fmt.Println(c.Locals("Hello")) // "World"
     // Websocket stuff
     for {
