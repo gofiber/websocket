@@ -56,7 +56,7 @@ func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
 			conn := acquireConn(fconn)
 			conn.locals = locals
 			defer releaseConn(conn)
-			h(conn)
+			handler(conn)
 		}); err != nil { // Upgrading failed
 			c.SendStatus(400)
 		}
