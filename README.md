@@ -20,7 +20,7 @@ func main() {
     c.Next()
   })
   
-  app.Get("/ws", websocket.New(func(c *fiber.Conn) {
+  app.Get("/ws", websocket.New(func(c *websocket.Conn) {
     fmt.Println(c.Locals("Hello")) // "World"
     // Websocket stuff
     for {
