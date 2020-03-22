@@ -6,6 +6,7 @@ package websocket
 
 import (
 	"sync"
+	"time"
 
 	"github.com/fasthttp/websocket"
 	"github.com/gofiber/fiber"
@@ -19,12 +20,16 @@ type Config struct {
 	Filter func(*fiber.Ctx) bool
 	// Origins
 	// Optional. Default value "1; mode=block".
-	Origins         []string
-	ReadBufferSize  int
-	WriteBufferSize int
+	HandshakeTimeout time.Duration
+	Subprotocols     []string
+
+	Origins           []string
+	ReadBufferSize    int
+	WriteBufferSize   int
+	EnableCompression bool
 }
 
-func Upgrade(h func(*Conn), config ...Config) func(*fiber.Ctx) {
+func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
 	// Init config
 	var cfg Config
 	if len(config) > 0 {
@@ -40,10 +45,22 @@ func Upgrade(h func(*Conn), config ...Config) func(*fiber.Ctx) {
 		cfg.WriteBufferSize = 1024
 	}
 	var upgrader = websocket.FastHTTPUpgrader{
-		ReadBufferSize:  cfg.ReadBufferSize,
-		WriteBufferSize: cfg.WriteBufferSize,
+		HandshakeTimeout:  cfg.HandshakeTimeout,
+		Subprotocols:      cfg.Subprotocols,
+		ReadBufferSize:    cfg.ReadBufferSize,
+		WriteBufferSize:   cfg.WriteBufferSize,
+		EnableCompression: cfg.EnableCompression,
 		CheckOrigin: func(fctx *fasthttp.RequestCtx) bool {
-			return true
+			if cfg.Origins[0] == "*" {
+				return true
+			}
+			origin := string(fctx.Request.Header.Peek("Origin"))
+			for _, o := range cfg.Origins {
+				if o == origin {
+					return true
+				}
+			}
+			return false
 		},
 	}
 	return func(c *fiber.Ctx) {
@@ -56,7 +73,7 @@ func Upgrade(h func(*Conn), config ...Config) func(*fiber.Ctx) {
 			conn := acquireConn(fconn)
 			conn.locals = locals
 			defer releaseConn(conn)
-			h(conn)
+			handler(conn)
 		}); err != nil { // Upgrading failed
 			c.SendStatus(400)
 		}
