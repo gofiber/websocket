@@ -1,9 +1,16 @@
+# 🧬 WebSocket middleware for [Fiber](https://github.com/gofiber/fiber)
+
+Based on [Fasthttp WebSocket](https://github.com/fasthttp/websocket).
+
 ### Install
+
 ```
 go get -u github.com/gofiber/fiber
 go get -u github.com/gofiber/websocket
 ```
+
 ### Example
+
 ```go
 package main
 
@@ -22,6 +29,7 @@ func main() {
   
   app.Get("/ws", websocket.New(func(c *websocket.Conn) {
     fmt.Println(c.Locals("Hello")) // "World"
+    
     // Websocket stuff
     for {
       mt, msg, err := c.ReadMessage()
@@ -38,6 +46,6 @@ func main() {
     }
   }))
 
-  app.Listen(3000) // ws://localhost:3000/ws
+  app.Listen(3000) // Listen on ws://localhost:3000/ws
 }
 ```
