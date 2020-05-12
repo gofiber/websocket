@@ -31,10 +31,9 @@ func main() {
     }
   })
 
-  app.Get("/ws/:id?", websocket.New(func(c *websocket.Conn) {
+  app.Get("/ws", websocket.New(func(c *websocket.Conn) {
     // Locals & Params are added to the *websocket.Conn
     fmt.Println(c.Locals("allowed"))  // true
-    fmt.Println(c.Params("id"))       // "1337"
 
     // websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
     for {
@@ -54,6 +53,6 @@ func main() {
   }))
 
   app.Listen(3000)
-  // Access the websocket server: ws://localhost:3000/ws/12345
+  // Access the websocket server: ws://localhost:3000/ws
 }
 ```
