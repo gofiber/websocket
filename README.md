@@ -23,14 +23,20 @@ func main() {
   app := fiber.New()
 
   app.Use(func(c *fiber.Ctx) {
-    c.Locals("Hello", "World")
-    c.Next()
+    // IsWebsocketUpgrade returns true if the client 
+    // requested upgrade to the WebSocket protocol.
+    if websocket.IsWebsocketUpgrade(c) {
+      c.Locals("allowed", true)
+      c.Next()
+    }
   })
-  
-  app.Get("/ws", websocket.New(func(c *websocket.Conn) {
-    fmt.Println(c.Locals("Hello")) // "World"
-    
-    // Websocket stuff
+
+  app.Get("/ws/:id?", websocket.New(func(c *websocket.Conn) {
+    // Locals & Params are added to the *websocket.Conn
+    fmt.Println(c.Locals("allowed"))  // true
+    fmt.Println(c.Params("id"))       // "1337"
+
+    // websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
     for {
       mt, msg, err := c.ReadMessage()
       if err != nil {
@@ -44,8 +50,10 @@ func main() {
         break
       }
     }
+
   }))
 
-  app.Listen(3000) // Listen on ws://localhost:3000/ws
+  app.Listen(3000)
+  // Access the websocket server: ws://localhost:3000/ws/12345
 }
 ```

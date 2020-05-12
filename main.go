@@ -18,17 +18,26 @@ type Config struct {
 	// Filter defines a function to skip middleware.
 	// Optional. Default: nil
 	Filter func(*fiber.Ctx) bool
-	// Origins
-	// Optional. Default value "1; mode=block".
+	// HandshakeTimeout specifies the duration for the handshake to complete.
 	HandshakeTimeout time.Duration
-	Subprotocols     []string
-
-	Origins           []string
-	ReadBufferSize    int
-	WriteBufferSize   int
+	// Subprotocols specifies the client's requested subprotocols.
+	Subprotocols []string
+	// Allowed Origin's based on the Origin header, this validate the request origin to
+	// prevent cross-site request forgery. Everything is allowed if left empty.
+	Origins []string
+	// ReadBufferSize and WriteBufferSize specify I/O buffer sizes in bytes. If a buffer
+	// size is zero, then a useful default size is used. The I/O buffer sizes
+	// do not limit the size of the messages that can be sent or received.
+	ReadBufferSize, WriteBufferSize int
+	// EnableCompression specifies if the client should attempt to negotiate
+	// per message compression (RFC 7692). Setting this value to true does not
+	// guarantee that compression will be supported. Currently only "no context
+	// takeover" modes are supported.
 	EnableCompression bool
 }
 
+// New returns a new `handler func(*Conn)` that upgrades a client to the
+// websocket protocol, you can pass an optional config.
 func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
 	// Init config
 	var cfg Config
@@ -55,15 +64,20 @@ func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
 				return true
 			}
 			origin := string(fctx.Request.Header.Peek("Origin"))
-			for _, o := range cfg.Origins {
-				if o == origin {
+			for i := range cfg.Origins {
+				if cfg.Origins[i] == origin {
 					return true
 				}
 			}
 			return false
 		},
 	}
+	// Fix when fiber released v1.9.7
+	// var params []string
 	return func(c *fiber.Ctx) {
+		// if params != nil {
+		// 	params = c.Route().Params
+		// }
 		locals := make(map[string]interface{})
 		c.Fasthttp.VisitUserValues(func(key []byte, value interface{}) {
 			locals[string(key)] = value
@@ -84,6 +98,8 @@ func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
 type Conn struct {
 	*websocket.Conn
 	locals map[string]interface{}
+	// params []string // fiber v1.9.7
+	// values []string // fiber v1.9.7
 }
 
 // Conn pool
@@ -107,6 +123,71 @@ func releaseConn(conn *Conn) {
 	poolConn.Put(conn)
 }
 
+// Locals makes it possible to pass interface{} values under string keys scoped to the request
+// and therefore available to all following routes that match the request.
 func (conn *Conn) Locals(key string) interface{} {
 	return conn.locals[key]
 }
+
+// Params is used to get the route parameters.
+// Defaults to empty string "", if the param doesn't exist.
+// func (conn *Conn) Params(key string) string {
+// 	for i := range conn.params {
+// 		if len(key) != len(conn.params[i]) {
+// 			continue
+// 		}
+// 		if conn.params[i] == key {
+// 			return conn.values[i]
+// 		}
+// 	}
+// 	return ""
+// }
+
+// IsWebSocketUpgrade returns true if the client requested upgrade to the
+// WebSocket protocol.
+func IsWebSocketUpgrade(ctx *fiber.Ctx) bool {
+	return websocket.FastHTTPIsWebSocketUpgrade(ctx.Fasthttp)
+}
+
+// Constants are taken from https://github.com/fasthttp/websocket/blob/master/conn.go#L43
+
+// Close codes defined in RFC 6455, section 11.7.
+const (
+	CloseNormalClosure           = 1000
+	CloseGoingAway               = 1001
+	CloseProtocolError           = 1002
+	CloseUnsupportedData         = 1003
+	CloseNoStatusReceived        = 1005
+	CloseAbnormalClosure         = 1006
+	CloseInvalidFramePayloadData = 1007
+	ClosePolicyViolation         = 1008
+	CloseMessageTooBig           = 1009
+	CloseMandatoryExtension      = 1010
+	CloseInternalServerErr       = 1011
+	CloseServiceRestart          = 1012
+	CloseTryAgainLater           = 1013
+	CloseTLSHandshake            = 1015
+)
+
+// The message types are defined in RFC 6455, section 11.8.
+const (
+	// TextMessage denotes a text data message. The text message payload is
+	// interpreted as UTF-8 encoded text data.
+	TextMessage = 1
+
+	// BinaryMessage denotes a binary data message.
+	BinaryMessage = 2
+
+	// CloseMessage denotes a close control message. The optional message
+	// payload contains a numeric code and text. Use the FormatCloseMessage
+	// function to format a close message payload.
+	CloseMessage = 8
+
+	// PingMessage denotes a ping control message. The optional message payload
+	// is UTF-8 encoded text.
+	PingMessage = 9
+
+	// PongMessage denotes a pong control message. The optional message payload
+	// is UTF-8 encoded text.
+	PongMessage = 10
+)
