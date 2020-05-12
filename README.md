@@ -32,7 +32,7 @@ func main() {
   })
 
   app.Get("/ws", websocket.New(func(c *websocket.Conn) {
-    // Locals & Params are added to the *websocket.Conn
+    // c.Locals is added to the *websocket.Conn
     fmt.Println(c.Locals("allowed"))  // true
 
     // websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
