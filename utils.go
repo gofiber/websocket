@@ -1,3 +1,8 @@
+  
+// 🚀 Fiber is an Express inspired web framework written in Go with 💖
+// 📌 API Documentation: https://fiber.wiki
+// 📝 Github Repository: https://github.com/gofiber/fiber
+
 package websocket
 
 // Constants are taken from https://github.com/fasthttp/websocket/blob/master/conn.go#L43
