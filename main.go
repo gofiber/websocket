@@ -5,6 +5,7 @@
 package websocket
 
 import (
+	"io"
 	"sync"
 	"time"
 
@@ -191,3 +192,28 @@ const (
 	// is UTF-8 encoded text.
 	PongMessage = 10
 )
+
+// FormatCloseMessage formats closeCode and text as a WebSocket close message.
+// An empty message is returned for code CloseNoStatusReceived.
+func FormatCloseMessage(closeCode int, text string) []byte {
+	return websocket.FormatCloseMessage(closeCode, text)
+}
+
+// IsCloseError returns boolean indicating whether the error is a *CloseError
+// with one of the specified codes.
+func IsCloseError(err error, codes ...int) bool {
+	return websocket.IsCloseError(err, codes...)
+}
+
+// IsUnexpectedCloseError returns boolean indicating whether the error is a
+// *CloseError with a code not in the list of expected codes.
+func IsUnexpectedCloseError(err error, expectedCodes ...int) bool {
+	return websocket.IsUnexpectedCloseError(err, expectedCodes...)
+}
+
+// JoinMessages concatenates received messages to create a single io.Reader.
+// The string term is appended to each message. The returned reader does not
+// support concurrent calls to the Read method.
+func JoinMessages(c *websocket.Conn, term string) io.Reader {
+	return websocket.JoinMessages(c, term)
+}
