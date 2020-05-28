@@ -1,4 +1,8 @@
-# 🧬 WebSocket middleware for [Fiber](https://github.com/gofiber/fiber)
+# WebSocket 
+
+![Test](https://github.com/gofiber/websocket/workflows/Test/badge.svg)
+![Security](https://github.com/gofiber/websocket/workflows/Security/badge.svg)
+![Linter](https://github.com/gofiber/websocket/workflows/Linter/badge.svg)
 
 Based on [Fasthttp WebSocket](https://github.com/fasthttp/websocket) for [Fiber](https://github.com/gofiber/fiber) with [Locals](http://docs.gofiber.io/context#locals) support!
 
