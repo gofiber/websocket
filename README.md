@@ -1,5 +1,7 @@
 # WebSocket 
 
+![Release](https://img.shields.io/github/release/gofiber/websocket.svg)
+[![Discord](https://img.shields.io/badge/discord-join%20channel-7289DA)](https://gofiber.io/discord)
 ![Test](https://github.com/gofiber/websocket/workflows/Test/badge.svg)
 ![Security](https://github.com/gofiber/websocket/workflows/Security/badge.svg)
 ![Linter](https://github.com/gofiber/websocket/workflows/Linter/badge.svg)
