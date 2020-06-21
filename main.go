@@ -5,12 +5,14 @@
 package websocket
 
 import (
+	"errors"
 	"io"
 	"sync"
 	"time"
 
 	"github.com/fasthttp/websocket"
 	"github.com/gofiber/fiber"
+	"github.com/gofiber/utils"
 	"github.com/valyala/fasthttp"
 )
 
@@ -64,7 +66,7 @@ func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
 			if cfg.Origins[0] == "*" {
 				return true
 			}
-			origin := string(fctx.Request.Header.Peek("Origin"))
+			origin := utils.GetString(fctx.Request.Header.Peek("Origin"))
 			for i := range cfg.Origins {
 				if cfg.Origins[i] == origin {
 					return true
@@ -73,7 +75,7 @@ func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
 			return false
 		},
 	}
-	// Fix when fiber released v1.9.7
+	// Fix when fiber v1.13 is tagged
 	// var params []string
 	return func(c *fiber.Ctx) {
 		// if params != nil {
@@ -99,8 +101,8 @@ func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
 type Conn struct {
 	*websocket.Conn
 	locals map[string]interface{}
-	// params []string // fiber v1.9.7
-	// values []string // fiber v1.9.7
+	// params []string // fiber v1.13
+	// values []string // fiber v1.13
 }
 
 // Conn pool
@@ -143,12 +145,6 @@ func (conn *Conn) Locals(key string) interface{} {
 // 	}
 // 	return ""
 // }
-
-// IsWebSocketUpgrade returns true if the client requested upgrade to the
-// WebSocket protocol.
-func IsWebSocketUpgrade(ctx *fiber.Ctx) bool {
-	return websocket.FastHTTPIsWebSocketUpgrade(ctx.Fasthttp)
-}
 
 // Constants are taken from https://github.com/fasthttp/websocket/blob/master/conn.go#L43
 
@@ -193,6 +189,12 @@ const (
 	PongMessage = 10
 )
 
+var (
+	ErrBadHandshake = errors.New("websocket: bad handshake")
+	ErrCloseSent    = errors.New("websocket: close sent")
+	ErrReadLimit    = errors.New("websocket: read limit exceeded")
+)
+
 // FormatCloseMessage formats closeCode and text as a WebSocket close message.
 // An empty message is returned for code CloseNoStatusReceived.
 func FormatCloseMessage(closeCode int, text string) []byte {
@@ -209,6 +211,12 @@ func IsCloseError(err error, codes ...int) bool {
 // *CloseError with a code not in the list of expected codes.
 func IsUnexpectedCloseError(err error, expectedCodes ...int) bool {
 	return websocket.IsUnexpectedCloseError(err, expectedCodes...)
+}
+
+// IsWebSocketUpgrade returns true if the client requested upgrade to the
+// WebSocket protocol.
+func IsWebSocketUpgrade(ctx *fiber.Ctx) bool {
+	return websocket.FastHTTPIsWebSocketUpgrade(ctx.Fasthttp)
 }
 
 // JoinMessages concatenates received messages to create a single io.Reader.
