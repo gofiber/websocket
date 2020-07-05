@@ -75,24 +75,31 @@ func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
 			return false
 		},
 	}
-	// Fix when fiber v1.13 is tagged
-	// var params []string
 	return func(c *fiber.Ctx) {
-		// if params != nil {
-		// 	params = c.Route().Params
-		// }
-		locals := make(map[string]interface{})
+		conn := acquireConn()
+		// locals
 		c.Fasthttp.VisitUserValues(func(key []byte, value interface{}) {
-			locals[string(key)] = value
+			conn.locals[string(key)] = value
 		})
-
+		// params TODO Fiber v1.12.5
+		// params := c.Route().Params
+		// for i := 0; i < len(params); i++ {
+		// 	conn.params[string(params[i])] = utils.ImmutableString(c.Params(params[i]))
+		// }
+		// queries
+		c.Fasthttp.QueryArgs().VisitAll(func(key, value []byte) {
+			conn.queries[string(key)] = string(value)
+		})
+		// cookies
+		c.Fasthttp.Request.Header.VisitAllCookie(func(key, value []byte) {
+			conn.cookies[string(key)] = string(value)
+		})
 		if err := upgrader.Upgrade(c.Fasthttp, func(fconn *websocket.Conn) {
-			conn := acquireConn(fconn)
-			conn.locals = locals
+			conn.Conn = fconn
 			defer releaseConn(conn)
 			handler(conn)
-		}); err != nil { // Upgrading failed
-			c.SendStatus(400)
+		}); err != nil { // Upgrading required
+			c.Next(fiber.ErrUpgradeRequired)
 		}
 	}
 }
@@ -100,9 +107,10 @@ func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
 // Conn https://godoc.org/github.com/gorilla/websocket#pkg-index
 type Conn struct {
 	*websocket.Conn
-	locals map[string]interface{}
-	// params []string // fiber v1.13
-	// values []string // fiber v1.13
+	locals  map[string]interface{}
+	params  map[string]string
+	cookies map[string]string
+	queries map[string]string
 }
 
 // Conn pool
@@ -113,16 +121,18 @@ var poolConn = sync.Pool{
 }
 
 // Acquire Conn from pool
-func acquireConn(fconn *websocket.Conn) *Conn {
+func acquireConn() *Conn {
 	conn := poolConn.Get().(*Conn)
-	conn.Conn = fconn
+	conn.locals = make(map[string]interface{})
+	conn.params = make(map[string]string)
+	conn.queries = make(map[string]string)
+	conn.cookies = make(map[string]string)
 	return conn
 }
 
 // Return Conn to pool
 func releaseConn(conn *Conn) {
 	conn.Conn = nil
-	conn.locals = nil
 	poolConn.Put(conn)
 }
 
@@ -133,18 +143,37 @@ func (conn *Conn) Locals(key string) interface{} {
 }
 
 // Params is used to get the route parameters.
-// Defaults to empty string "", if the param doesn't exist.
-// func (conn *Conn) Params(key string) string {
-// 	for i := range conn.params {
-// 		if len(key) != len(conn.params[i]) {
-// 			continue
-// 		}
-// 		if conn.params[i] == key {
-// 			return conn.values[i]
-// 		}
-// 	}
-// 	return ""
-// }
+// Defaults to empty string "" if the param doesn't exist.
+// If a default value is given, it will return that value if the param doesn't exist.
+func (conn *Conn) Params(key string, defaultValue ...string) string {
+	v, ok := conn.params[key]
+	if !ok && len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return v
+}
+
+// Query returns the query string parameter in the url.
+// Defaults to empty string "" if the query doesn't exist.
+// If a default value is given, it will return that value if the query doesn't exist.
+func (conn *Conn) Query(key string, defaultValue ...string) string {
+	v, ok := conn.queries[key]
+	if !ok && len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return v
+}
+
+// Cookies is used for getting a cookie value by key
+// Defaults to empty string "" if the cookie doesn't exist.
+// If a default value is given, it will return that value if the cookie doesn't exist.
+func (conn *Conn) Cookies(key string, defaultValue ...string) string {
+	v, ok := conn.cookies[key]
+	if !ok && len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return v
+}
 
 // Constants are taken from https://github.com/fasthttp/websocket/blob/master/conn.go#L43
 
