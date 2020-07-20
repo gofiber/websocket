@@ -21,17 +21,22 @@ type Config struct {
 	// Filter defines a function to skip middleware.
 	// Optional. Default: nil
 	Filter func(*fiber.Ctx) bool
+
 	// HandshakeTimeout specifies the duration for the handshake to complete.
 	HandshakeTimeout time.Duration
+
 	// Subprotocols specifies the client's requested subprotocols.
 	Subprotocols []string
+
 	// Allowed Origin's based on the Origin header, this validate the request origin to
 	// prevent cross-site request forgery. Everything is allowed if left empty.
 	Origins []string
+
 	// ReadBufferSize and WriteBufferSize specify I/O buffer sizes in bytes. If a buffer
 	// size is zero, then a useful default size is used. The I/O buffer sizes
 	// do not limit the size of the messages that can be sent or received.
 	ReadBufferSize, WriteBufferSize int
+
 	// EnableCompression specifies if the client should attempt to negotiate
 	// per message compression (RFC 7692). Setting this value to true does not
 	// guarantee that compression will be supported. Currently only "no context
@@ -81,11 +86,11 @@ func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
 		c.Fasthttp.VisitUserValues(func(key []byte, value interface{}) {
 			conn.locals[string(key)] = value
 		})
-		// params TODO Fiber v1.12.5
-		// params := c.Route().Params
-		// for i := 0; i < len(params); i++ {
-		// 	conn.params[string(params[i])] = utils.ImmutableString(c.Params(params[i]))
-		// }
+		// params
+		params := c.Route().Params
+		for i := 0; i < len(params); i++ {
+			conn.params[utils.ImmutableString(params[i])] = utils.ImmutableString(c.Params(params[i]))
+		}
 		// queries
 		c.Fasthttp.QueryArgs().VisitAll(func(key, value []byte) {
 			conn.queries[string(key)] = string(value)

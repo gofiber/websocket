@@ -21,46 +21,55 @@ go get -u github.com/gofiber/websocket
 package main
 
 import (
-  "github.com/gofiber/fiber"
-  "github.com/gofiber/websocket"
+	"log"
+
+	"github.com/gofiber/fiber"
+	"github.com/gofiber/websocket"
 )
 
 func main() {
-  app := fiber.New()
+	app := fiber.New()
 
-  app.Use(func(c *fiber.Ctx) {
-    // IsWebSocketUpgrade returns true if the client 
-    // requested upgrade to the WebSocket protocol.
-    if websocket.IsWebSocketUpgrade(c) {
-      c.Locals("allowed", true)
-      c.Next()
-    }
-  })
+	app.Use(func(c *fiber.Ctx) {
+		// IsWebSocketUpgrade returns true if the client
+		// requested upgrade to the WebSocket protocol.
+		if websocket.IsWebSocketUpgrade(c) {
+			c.Locals("allowed", true)
+			c.Next()
+		}
+	})
 
-  app.Get("/ws/:id", websocket.New(func(c *websocket.Conn) {
-    // c.Locals is added to the *websocket.Conn
-    fmt.Println(c.Locals("allowed"))  // true
-    fmt.Println(c.Params("id"))       // 123
-    fmt.Println(c.Query("v"))         // 1.0
-    fmt.Println(c.Cookies("session"))
-    // websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
-    for {
-      mt, msg, err := c.ReadMessage()
-      if err != nil {
-        log.Println("read:", err)
-        break
-      }
-      log.Printf("recv: %s", msg)
-      err = c.WriteMessage(mt, msg)
-      if err != nil {
-        log.Println("write:", err)
-        break
-      }
-    }
+	app.Get("/ws/:id", websocket.New(func(c *websocket.Conn) {
+		// c.Locals is added to the *websocket.Conn
+		log.Println(c.Locals("allowed"))  // true
+		log.Println(c.Params("id"))       // 123
+		log.Println(c.Query("v"))         // 1.0
+		log.Println(c.Cookies("session")) // ""
 
-  }))
+		// websocket.Conn bindings https://pkg.go.dev/github.com/fasthttp/websocket?tab=doc#pkg-index
+		var (
+			mt  int
+			msg []byte
+			err error
+		)
+		for {
+			if mt, msg, err = c.ReadMessage(); err != nil {
+				log.Println("read:", err)
+				break
+			}
+			log.Printf("recv: %s", msg)
 
-  app.Listen(3000)
-  // Access the websocket server: ws://localhost:3000/ws/123?v=1.0
+			if err = c.WriteMessage(mt, msg); err != nil {
+				log.Println("write:", err)
+				break
+			}
+		}
+
+	}))
+
+	log.Fatal(app.Listen(3000))
+	// Access the websocket server: ws://localhost:3000/ws/123?v=1.0
+	// https://www.websocket.org/echo.html
 }
+
 ```
