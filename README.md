@@ -30,7 +30,7 @@ import (
 func main() {
 	app := fiber.New()
 
-	app.Use(func(c *fiber.Ctx) {
+	app.Use(func(c *fiber.Ctx) error {
 		// IsWebSocketUpgrade returns true if the client
 		// requested upgrade to the WebSocket protocol.
 		if websocket.IsWebSocketUpgrade(c) {
@@ -67,7 +67,7 @@ func main() {
 
 	}))
 
-	log.Fatal(app.Listen(3000))
+	log.Fatal(app.Listen(":3000"))
 	// Access the websocket server: ws://localhost:3000/ws/123?v=1.0
 	// https://www.websocket.org/echo.html
 }
