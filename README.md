@@ -37,6 +37,7 @@ func main() {
 			c.Locals("allowed", true)
 			return c.Next()
 		}
+		return fiber.ErrUpgradeRequired
 	})
 
 	app.Get("/ws/:id", websocket.New(func(c *websocket.Conn) {
