@@ -30,12 +30,12 @@ import (
 func main() {
 	app := fiber.New()
 
-	app.Use(func(c *fiber.Ctx) error {
+	app.Use("/ws", func(c *fiber.Ctx) error {
 		// IsWebSocketUpgrade returns true if the client
 		// requested upgrade to the WebSocket protocol.
 		if websocket.IsWebSocketUpgrade(c) {
 			c.Locals("allowed", true)
-			c.Next()
+			return c.Next()
 		}
 	})
 
