@@ -11,8 +11,8 @@ Based on [Fasthttp WebSocket](https://github.com/fasthttp/websocket) for [Fiber]
 ### Install
 
 ```
-go get -u github.com/gofiber/fiber
-go get -u github.com/gofiber/websocket
+go get -u github.com/gofiber/fiber/v2
+go get -u github.com/gofiber/websocket/v2
 ```
 
 ### Example
@@ -23,8 +23,8 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber"
-	"github.com/gofiber/websocket"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 )
 
 func main() {
