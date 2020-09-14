@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/fasthttp/websocket"
-	"github.com/gofiber/fiber"
-	"github.com/gofiber/utils"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/utils"
 	"github.com/valyala/fasthttp"
 )
 
@@ -46,7 +46,7 @@ type Config struct {
 
 // New returns a new `handler func(*Conn)` that upgrades a client to the
 // websocket protocol, you can pass an optional config.
-func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
+func New(handler func(*Conn), config ...Config) fiber.Handler {
 	// Init config
 	var cfg Config
 	if len(config) > 0 {
@@ -80,32 +80,38 @@ func New(handler func(*Conn), config ...Config) func(*fiber.Ctx) {
 			return false
 		},
 	}
-	return func(c *fiber.Ctx) {
+	return func(c *fiber.Ctx) error {
 		conn := acquireConn()
 		// locals
-		c.Fasthttp.VisitUserValues(func(key []byte, value interface{}) {
+		c.Context().VisitUserValues(func(key []byte, value interface{}) {
 			conn.locals[string(key)] = value
 		})
+
 		// params
 		params := c.Route().Params
 		for i := 0; i < len(params); i++ {
 			conn.params[utils.ImmutableString(params[i])] = utils.ImmutableString(c.Params(params[i]))
 		}
+
 		// queries
-		c.Fasthttp.QueryArgs().VisitAll(func(key, value []byte) {
+		c.Context().QueryArgs().VisitAll(func(key, value []byte) {
 			conn.queries[string(key)] = string(value)
 		})
+
 		// cookies
-		c.Fasthttp.Request.Header.VisitAllCookie(func(key, value []byte) {
+		c.Context().Request.Header.VisitAllCookie(func(key, value []byte) {
 			conn.cookies[string(key)] = string(value)
 		})
-		if err := upgrader.Upgrade(c.Fasthttp, func(fconn *websocket.Conn) {
+
+		if err := upgrader.Upgrade(c.Context(), func(fconn *websocket.Conn) {
 			conn.Conn = fconn
 			defer releaseConn(conn)
 			handler(conn)
 		}); err != nil { // Upgrading required
-			c.Next(fiber.ErrUpgradeRequired)
+			return fiber.ErrUpgradeRequired
 		}
+
+		return nil
 	}
 }
 
@@ -249,8 +255,8 @@ func IsUnexpectedCloseError(err error, expectedCodes ...int) bool {
 
 // IsWebSocketUpgrade returns true if the client requested upgrade to the
 // WebSocket protocol.
-func IsWebSocketUpgrade(ctx *fiber.Ctx) bool {
-	return websocket.FastHTTPIsWebSocketUpgrade(ctx.Fasthttp)
+func IsWebSocketUpgrade(c *fiber.Ctx) bool {
+	return websocket.FastHTTPIsWebSocketUpgrade(c.Context())
 }
 
 // JoinMessages concatenates received messages to create a single io.Reader.

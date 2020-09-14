@@ -11,8 +11,8 @@ Based on [Fasthttp WebSocket](https://github.com/fasthttp/websocket) for [Fiber]
 ### Install
 
 ```
-go get -u github.com/gofiber/fiber
-go get -u github.com/gofiber/websocket
+go get -u github.com/gofiber/fiber/v2
+go get -u github.com/gofiber/websocket/v2
 ```
 
 ### Example
@@ -23,20 +23,21 @@ package main
 import (
 	"log"
 
-	"github.com/gofiber/fiber"
-	"github.com/gofiber/websocket"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/websocket/v2"
 )
 
 func main() {
 	app := fiber.New()
 
-	app.Use(func(c *fiber.Ctx) {
+	app.Use("/ws", func(c *fiber.Ctx) error {
 		// IsWebSocketUpgrade returns true if the client
 		// requested upgrade to the WebSocket protocol.
 		if websocket.IsWebSocketUpgrade(c) {
 			c.Locals("allowed", true)
-			c.Next()
+			return c.Next()
 		}
+		return fiber.ErrUpgradeRequired
 	})
 
 	app.Get("/ws/:id", websocket.New(func(c *websocket.Conn) {
@@ -67,7 +68,7 @@ func main() {
 
 	}))
 
-	log.Fatal(app.Listen(3000))
+	log.Fatal(app.Listen(":3000"))
 	// Access the websocket server: ws://localhost:3000/ws/123?v=1.0
 	// https://www.websocket.org/echo.html
 }
