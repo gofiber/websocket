@@ -4,6 +4,9 @@ github.com/fasthttp/websocket v1.4.3-beta.2 h1:y6L7Ssa0caG1ozGX5xTikXnZE/8c+v8RU
 github.com/fasthttp/websocket v1.4.3-beta.2/go.mod h1:9hYG0tD7IIBFVQ7bUJeoVWMiJQH/2yMkWEO7gdbw71k=
 github.com/gofiber/fiber/v2 v2.0.2 h1:Zet9qNptQkhrLZhWBHZQNjeSnokp8xyiGQp4Je0p3yk=
 github.com/gofiber/fiber/v2 v2.0.2/go.mod h1:GeIpT8VILgZt3Tn6gATjwb39Ff8OdM0qnZ2grAA0Vts=
+github.com/gofiber/fiber/v2 v2.0.6 h1:eq1LGUM8arRCWxjQPvQzJJIRKDsc7Up/kxaSCUP6PIo=
+github.com/gofiber/fiber/v2 v2.0.6/go.mod h1:VyfrlfcUCW0TcO5uaLHVlxZ8N25BgwnP6YjkzJmJP24=
+github.com/klauspost/compress v1.10.7 h1:7rix8v8GpI3ZBb0nSozFRgbtXKv+hOe+qfEpZqybrAg=
 github.com/klauspost/compress v1.10.7/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdYsUV+/s2qKfXs=
 github.com/klauspost/compress v1.11.0 h1:wJbzvpYMVGG9iTI9VxpnNZfd4DzMPoCWze3GgSqz8yg=
 github.com/klauspost/compress v1.11.0/go.mod h1:aoV0uJVorq1K+umq18yTdKaF57EivdYsUV+/s2qKfXs=
@@ -22,4 +25,6 @@ golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20200602225109-6fdc65e7d980/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200909081042-eff7692f9009 h1:W0lCpv29Hv0UaM1LXb9QlBHLNP8UFfcKjblhVCWftOM=
 golang.org/x/sys v0.0.0-20200909081042-eff7692f9009/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200929083018-4d22bbb62b3c h1:/h0vtH0PyU0xAoZJVcRw1k0Ng+U0JAy3QDiFmppIlIE=
+golang.org/x/sys v0.0.0-20200929083018-4d22bbb62b3c/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
