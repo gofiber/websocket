@@ -1,4 +1,4 @@
-# WebSocket 
+# WebSocket
 
 ![Release](https://img.shields.io/github/release/gofiber/websocket.svg)
 [![Discord](https://img.shields.io/badge/discord-join%20channel-7289DA)](https://gofiber.io/discord)
@@ -73,4 +73,19 @@ func main() {
 	// https://www.websocket.org/echo.html
 }
 
+```
+
+### Note with cache middleware
+
+If you get the error `websocket: bad handshake` when using the [cache middleware](https://github.com/gofiber/fiber/tree/master/middleware/cache), please use `config.Next` to skip websocket path.
+
+```go
+app := fiber.New()
+app.Use(cache.New(cache.Config{
+		Next: func(c *fiber.Ctx) bool {
+			return strings.Contains(c.Route().Path, "/ws")
+		},
+}))
+
+app.Get("/ws/:id", websocket.New(func(c *websocket.Conn) {}))
 ```
