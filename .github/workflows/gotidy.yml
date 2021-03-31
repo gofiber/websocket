@@ -25,6 +25,7 @@ jobs:
         name: Tidy
         run: |
           rm -f go.sum
+          go clean -modcache
           go mod tidy
       -
         name: Set up Git
