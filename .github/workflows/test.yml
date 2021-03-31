@@ -14,5 +14,7 @@ jobs:
         go-version: ${{ matrix.go-version }}
     - name: Fetch Repository
       uses: actions/checkout@v2
+    - name: Go ,od cache clean
+      run: go clean -modcache
     - name: Run Test
       run: go test -race
