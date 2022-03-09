@@ -6,6 +6,7 @@ package websocket
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -98,6 +99,9 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
 			conn.queries[string(key)] = string(value)
 		})
 
+		// headers
+		conn.headers = c.GetReqHeaders()
+
 		// cookies
 		c.Context().Request.Header.VisitAllCookie(func(key, value []byte) {
 			conn.cookies[string(key)] = string(value)
@@ -122,6 +126,7 @@ type Conn struct {
 	params  map[string]string
 	cookies map[string]string
 	queries map[string]string
+	headers map[string]string
 }
 
 // Conn pool
@@ -138,6 +143,7 @@ func acquireConn() *Conn {
 	conn.params = make(map[string]string)
 	conn.queries = make(map[string]string)
 	conn.cookies = make(map[string]string)
+	conn.headers = make(map[string]string)
 	return conn
 }
 
@@ -169,6 +175,17 @@ func (conn *Conn) Params(key string, defaultValue ...string) string {
 // If a default value is given, it will return that value if the query doesn't exist.
 func (conn *Conn) Query(key string, defaultValue ...string) string {
 	v, ok := conn.queries[key]
+	if !ok && len(defaultValue) > 0 {
+		return defaultValue[0]
+	}
+	return v
+}
+
+// Header returns the request header based on provided key.
+// Defaults to empty string "" if the query doesn't exist.
+// If a default value is given, it will return that value if the query doesn't exist.
+func (conn *Conn) Header(key string, defaultValue ...string) string {
+	v, ok := conn.headers[key]
 	if !ok && len(defaultValue) > 0 {
 		return defaultValue[0]
 	}
