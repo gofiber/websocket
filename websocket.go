@@ -192,13 +192,25 @@ func (conn *Conn) Header(key string, defaultValue ...string) string {
 	return v
 }
 
-// Cookies is used for getting a cookie value by key
+// Cookies are used for getting a cookie value by key, If key is not provided It will return whole cookie string
 // Defaults to empty string "" if the cookie doesn't exist.
 // If a default value is given, it will return that value if the cookie doesn't exist.
-func (conn *Conn) Cookies(key string, defaultValue ...string) string {
+func (conn *Conn) Cookies(params ...string) string {
+	if len(params) == 0 {
+		var all_cookies []byte
+
+		for key, element := range conn.cookies {
+			all_cookies = append(all_cookies, fmt.Sprintf("%s=%s; ", key, element)...)
+		}
+
+		return string(all_cookies)
+	}
+
+	key := params[0]
+
 	v, ok := conn.cookies[key]
-	if !ok && len(defaultValue) > 0 {
-		return defaultValue[0]
+	if !ok && len(params) > 1 {
+		return params[1]
 	}
 	return v
 }
