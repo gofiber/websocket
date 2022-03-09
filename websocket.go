@@ -197,13 +197,13 @@ func (conn *Conn) Header(key string, defaultValue ...string) string {
 // If a default value is given, it will return that value if the cookie doesn't exist.
 func (conn *Conn) Cookies(params ...string) string {
 	if len(params) == 0 {
-		var all_cookies []byte
+		var allCookies []byte
 
 		for key, element := range conn.cookies {
-			all_cookies = append(all_cookies, fmt.Sprintf("%s=%s; ", key, element)...)
+			allCookies = append(allCookies, fmt.Sprintf("%s=%s; ", key, element)...)
 		}
 
-		return string(all_cookies)
+		return string(allCookies)
 	}
 
 	key := params[0]
