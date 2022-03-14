@@ -1,4 +1,4 @@
-module github.com/gofiber/websocket/v2
+module github.com/surjit/websocket/v2
 
 go 1.14
 
