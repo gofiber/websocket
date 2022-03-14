@@ -6,6 +6,7 @@ package websocket
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -98,6 +99,9 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
 			conn.queries[string(key)] = string(value)
 		})
 
+		// headers
+		conn.headers = c.GetReqHeaders()
+
 		// cookies
 		c.Context().Request.Header.VisitAllCookie(func(key, value []byte) {
 			conn.cookies[string(key)] = string(value)
@@ -122,6 +126,7 @@ type Conn struct {
 	params  map[string]string
 	cookies map[string]string
 	queries map[string]string
+	headers map[string]string
 }
 
 // Conn pool
@@ -138,6 +143,7 @@ func acquireConn() *Conn {
 	conn.params = make(map[string]string)
 	conn.queries = make(map[string]string)
 	conn.cookies = make(map[string]string)
+	conn.headers = make(map[string]string)
 	return conn
 }
 
@@ -175,13 +181,36 @@ func (conn *Conn) Query(key string, defaultValue ...string) string {
 	return v
 }
 
-// Cookies is used for getting a cookie value by key
-// Defaults to empty string "" if the cookie doesn't exist.
-// If a default value is given, it will return that value if the cookie doesn't exist.
-func (conn *Conn) Cookies(key string, defaultValue ...string) string {
-	v, ok := conn.cookies[key]
+// Header returns the request header based on provided key.
+// Defaults to empty string "" if the query doesn't exist.
+// If a default value is given, it will return that value if the query doesn't exist.
+func (conn *Conn) Header(key string, defaultValue ...string) string {
+	v, ok := conn.headers[key]
 	if !ok && len(defaultValue) > 0 {
 		return defaultValue[0]
+	}
+	return v
+}
+
+// Cookies are used for getting a cookie value by key, If key is not provided It will return whole cookie string
+// Defaults to empty string "" if the cookie doesn't exist.
+// If a default value is given, it will return that value if the cookie doesn't exist.
+func (conn *Conn) Cookies(params ...string) string {
+	if len(params) == 0 {
+		var allCookies []byte
+
+		for key, element := range conn.cookies {
+			allCookies = append(allCookies, fmt.Sprintf("%s=%s; ", key, element)...)
+		}
+
+		return string(allCookies)
+	}
+
+	key := params[0]
+
+	v, ok := conn.cookies[key]
+	if !ok && len(params) > 1 {
+		return params[1]
 	}
 	return v
 }
