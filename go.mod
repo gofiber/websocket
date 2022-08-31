@@ -4,6 +4,6 @@ go 1.14
 
 require (
 	github.com/fasthttp/websocket v1.5.0
-	github.com/gofiber/fiber/v2 v2.36.0
+	github.com/gofiber/fiber/v2 v2.37.0
 	github.com/valyala/fasthttp v1.39.0
 )
