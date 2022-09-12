@@ -242,9 +242,15 @@ const (
 )
 
 var (
+    // ErrBadHandshake is returned when the server response to opening handshake is
+    // invalid.
     ErrBadHandshake = errors.New("websocket: bad handshake")
-    ErrCloseSent    = errors.New("websocket: close sent")
-    ErrReadLimit    = errors.New("websocket: read limit exceeded")
+    // ErrCloseSent is returned when the application writes a message to the
+    // connection after sending a close message.
+    ErrCloseSent = errors.New("websocket: close sent")
+    // ErrReadLimit is returned when reading a message that is larger than the
+    // read limit set for the connection.
+    ErrReadLimit = errors.New("websocket: read limit exceeded")
 )
 
 // FormatCloseMessage formats closeCode and text as a WebSocket close message.
