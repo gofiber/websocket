@@ -83,7 +83,7 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
             if cfg.Origins[0] == "*" {
                 return true
             }
-            origin := utils.GetString(fctx.Request.Header.Peek("Origin"))
+            origin := utils.UnsafeString(fctx.Request.Header.Peek("Origin"))
             for i := range cfg.Origins {
                 if cfg.Origins[i] == origin {
                     return true
@@ -102,7 +102,7 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
         // params
         params := c.Route().Params
         for i := 0; i < len(params); i++ {
-            conn.params[utils.ImmutableString(params[i])] = utils.ImmutableString(c.Params(params[i]))
+            conn.params[utils.CopyString(params[i])] = utils.ImmutableString(c.Params(params[i]))
         }
 
         // queries
