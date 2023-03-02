@@ -93,6 +93,10 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
         },
     }
     return func(c *fiber.Ctx) error {
+        if cfg.Filter != nil && !cfg.Filter(c) {
+            return c.Next()
+        }
+
         conn := acquireConn()
         // locals
         c.Context().VisitUserValues(func(key []byte, value interface{}) {
