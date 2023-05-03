@@ -120,9 +120,9 @@ func New(handler func(*Conn), config ...Config) fiber.Handler {
         })
         
         // headers
-		c.Context().Request.Header.VisitAll(func(key, value []byte) {
-			conn.headers[string(key)] = string(value)
-		})
+	c.Context().Request.Header.VisitAll(func(key, value []byte) {
+	    conn.headers[string(key)] = string(value)
+	})
 
         if err := upgrader.Upgrade(c.Context(), func(fconn *websocket.Conn) {
             conn.Conn = fconn
