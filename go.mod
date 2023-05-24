@@ -1,3 +1,5 @@
+// Deprecated: Now part of the fiber contrib repo:
+// github.com/gofiber/contrib/websocket
 module github.com/gofiber/websocket/v2
 
 go 1.17
